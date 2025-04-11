@@ -3,8 +3,11 @@ venv/
 
 # Python bytecode
 __pycache__/
+*/__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # Distribution / packaging
 dist/
@@ -23,3 +26,8 @@ StrainImg.png
 .vscode/
 *.swp
 *.swo
+
+# Test output files
+Test/*.npy
+Test/StrainImg*.png
+Test/FlowAndStrainImg*.png
