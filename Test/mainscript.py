@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use Agg backend for non-interactive plotting
 import matplotlib.pyplot as plt
 import cv2
 import time
@@ -8,9 +10,9 @@ sys.path.append('../Src/')
 from compute_flow import *
 import warnings
 
-''' In this script we test the function compute_flow and we set parameters 
-We created a dico called parameters. 
-parameters contains: 
+''' In this script we test the function compute_flow and we set parameters
+We created a dico called parameters.
+parameters contains:
     -pyram_levels:  Number of levels
     -factor: Downsampling factor
     -ordre_inter: Order of interpolation used for resizing
@@ -20,7 +22,7 @@ parameters contains:
     -lmbda: Tikhonov Parameter
     -lambda2: Li and Osher median parameter for non local term (Encourages the displacements and the auxiliary fields to be the same)
     -lambda3: Li and Osher median parameter (Smooth the auxiliary fields )
-By default: 
+By default:
 
 # Pyram params
 pyram_levels = 3
@@ -42,13 +44,13 @@ lambda3 = 1
 
 def parameters_func(tab, parameters):
     '''
-    parameters_func will associate the parameters and values given in tab with their 
-    their correspondant fields in the dico of parameters 
-    Parameters: 
+    parameters_func will associate the parameters and values given in tab with their
+    their correspondant fields in the dico of parameters
+    Parameters:
         tab: a table of strings containing the keys and their values (Example: lmbda=0.05)
-        parameters: the dictionary of parameters 
-    returns: 
-         will associate the parameters and values given in tab with their 
+        parameters: the dictionary of parameters
+    returns:
+         will associate the parameters and values given in tab with their
         their correspondant fields in parameters
     '''
     # The parameters of type int
@@ -122,7 +124,7 @@ if __name__ == "__main__":
 
     # replace_main(sys.argv,parameters)
     parameters_func(sys.argv, parameters)
-    
+
     # Compute flow field
     t1 = time.time()
     u, v = compute_flow(Im1, Im2,  parameters["pyram_levels"], parameters["factor"], parameters["ordre_inter"],
@@ -136,24 +138,79 @@ if __name__ == "__main__":
     if (('cucim'in sys.modules)):
         # Uniaxial strain GPU version case
         Exy, Exx = np.gradient(u.get())
+        _, Eyy = np.gradient(v.get())  # Calculate vertical strain
         cp.save('u_cucim.npy', u.get())
         cp.save('v_cucim.npy', v.get())
     if (('cucim'not in sys.modules)):
         # Uniaxial strain CPU version
         Exy, Exx = np.gradient(u)
+        _, Eyy = np.gradient(v)  # Calculate vertical strain
         cp.save('u_cucim.npy', u)
         cp.save('v_cucim.npy', v)
 
     # Compute energies
     '''print("Energie Image: %E"%(en.energie_image(Im1,Im2,u,v)))
     print("Energie Grad déplacement: %E"%(en.energie_grad_dep(u,v,lmbda)))  '''
-    # Plot
-    plt.figure()
-    plt.imshow(Exx)
-    plt.clim(-0.1, 0.1)
-    plt.colorbar()
-    '''plt.title("mf.size=%i lmbda=%2ef,Lambda2=%2ef Lambda3=2ef" %
-            size_median_filter % lmbda % lambda2 % lambda3)'''
-    plt.show(block=False)
-    # Saving Strain plt
-    plt.savefig('StrainImg')
+
+    # Create a figure with three subplots
+    fig = plt.figure(figsize=(15, 5))
+
+    # Plot 1: Quiver plot of the flow field
+    ax1 = fig.add_subplot(131)
+    # Downsample the flow field for better visualization
+    step = 20  # Adjust this value to change the density of arrows
+    Y, X = np.mgrid[0:u.shape[0]:step, 0:u.shape[1]:step]
+    U = u[::step, ::step]
+    V = v[::step, ::step]
+
+    # Plot the first image as background
+    ax1.imshow(Im1, cmap='gray')
+    # Plot the flow vectors
+    q = ax1.quiver(X, Y, U, V, color='r', scale=50, width=0.002)
+    ax1.set_title('Optical Flow Field')
+
+    # Plot 2: Horizontal Strain field (Exx)
+    ax2 = fig.add_subplot(132)
+    im = ax2.imshow(Exx, cmap='jet')
+    im.set_clim(-0.1, 0.1)  # Set color limits on the image
+    ax2.set_title('Horizontal Strain Field (Exx)')
+    fig.colorbar(im, ax=ax2)
+
+    # Plot 3: Vertical Strain field (Eyy)
+    ax3 = fig.add_subplot(133)
+    im2 = ax3.imshow(Eyy, cmap='jet')
+    im2.set_clim(-0.1, 0.1)  # Set color limits on the image
+    ax3.set_title('Vertical Strain Field (Eyy)')
+    fig.colorbar(im2, ax=ax3)
+
+    # Adjust layout
+    plt.tight_layout()
+
+    # Saving the figure
+    print('Saving flow and strain visualization to FlowAndStrainImg.png')
+    plt.show()
+    fig.savefig('FlowAndStrainImg.png', dpi=300)
+
+    # Also save individual strain images for compatibility
+    # Horizontal strain
+    fig2 = plt.figure()
+    ax = fig2.add_subplot(111)
+    im3 = ax.imshow(Exx, cmap='jet')
+    im3.set_clim(-0.1, 0.1)  # Set color limits on the image
+    fig2.colorbar(im3)
+    ax.set_title('Horizontal Strain Field (Exx)')
+    print('Saving horizontal strain visualization to StrainImg_Exx.png')
+    fig2.savefig('StrainImg_Exx.png')
+
+    # Vertical strain
+    fig3 = plt.figure()
+    ax = fig3.add_subplot(111)
+    im4 = ax.imshow(Eyy, cmap='jet')
+    im4.set_clim(-0.1, 0.1)  # Set color limits on the image
+    fig3.colorbar(im4)
+    ax.set_title('Vertical Strain Field (Eyy)')
+    print('Saving vertical strain visualization to StrainImg_Eyy.png')
+    fig3.savefig('StrainImg_Eyy.png')
+
+    # For backward compatibility
+    fig2.savefig('StrainImg.png')

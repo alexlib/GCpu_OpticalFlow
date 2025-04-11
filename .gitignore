@@ -19,6 +19,8 @@ build/
 
 # Output files
 *.npy
+*.tif
+*.tiff
 StrainImg.png
 
 # IDE specific files
@@ -29,5 +31,13 @@ StrainImg.png
 
 # Test output files
 Test/*.npy
-Test/StrainImg*.png
-Test/FlowAndStrainImg*.png
+Test/*.png
+Test/*.tif
+Test/*.tiff
+Test/u_*
+Test/v_*
+Test/FlowAndStrainImg*
+Test/StrainImg*
+Src/__pycache__/compute_flow.cpython-38.pyc
+Src/__pycache__/compute_flow.cpython-38.pyc
+Src/__pycache__/compute_flow.cpython-38.pyc
