@@ -78,11 +78,7 @@ Some image sequences are provided in the folder **Images** to test the code.
    This will:
    - Compute the optical flow between the two images
    - Calculate the strain fields (horizontal and vertical)
-   - Generate visualization images:
-     - `FlowAndStrainImg.png`: Combined visualization of flow field and strain fields
-     - `StrainImg_Exx.png`: Horizontal strain field
-     - `StrainImg_Eyy.png`: Vertical strain field
-     - `StrainImg.png`: Copy of horizontal strain field (for compatibility)
+   - Generate visualization images
 
 ### Advanced Usage
 

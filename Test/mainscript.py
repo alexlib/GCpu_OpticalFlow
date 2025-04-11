@@ -139,14 +139,14 @@ if __name__ == "__main__":
         # Uniaxial strain GPU version case
         Exy, Exx = np.gradient(u.get())
         _, Eyy = np.gradient(v.get())  # Calculate vertical strain
-        cp.save('u_cucim.npy', u.get())
-        cp.save('v_cucim.npy', v.get())
+        # cp.save('u_cucim.npy', u.get())
+        # cp.save('v_cucim.npy', v.get())
     if (('cucim'not in sys.modules)):
         # Uniaxial strain CPU version
-        Exy, Exx = np.gradient(u)
-        _, Eyy = np.gradient(v)  # Calculate vertical strain
-        cp.save('u_cucim.npy', u)
-        cp.save('v_cucim.npy', v)
+        _, Exx = np.gradient(u)  # Calculate horizontal strain
+        Eyy, _ = np.gradient(v)  # Calculate vertical strain
+        # cp.save('u_cucim.npy', u)
+        # cp.save('v_cucim.npy', v)
 
     # Compute energies
     '''print("Energie Image: %E"%(en.energie_image(Im1,Im2,u,v)))
@@ -214,3 +214,32 @@ if __name__ == "__main__":
 
     # For backward compatibility
     fig2.savefig('StrainImg.png')
+
+def main():
+    # Set default parameters
+    parameters = {"pyram_levels": 3, "factor": 1/0.5, "ordre_inter": 3, "size_median_filter": 5, "max_linear_iter": 1, "max_iter": 10,
+                  "lmbda": 3.*10**4, "lambda2": 0.001, "lambda3": 1., "Mask": None,"LO_filter": 0}
+
+    # Set default image paths
+    im1_path = '../Images/Test3/C001H001S0003000001.tif'
+    im2_path = '../Images/Test3/C001H001S0004000001.tif'
+
+    # Load images
+    Im1 = cv2.imread(im1_path, 0)
+    Im2 = cv2.imread(im2_path, 0)
+
+    # Compute flow field
+    t1 = time.time()
+    u, v = compute_flow(Im1, Im2, parameters["pyram_levels"], parameters["factor"], parameters["ordre_inter"],
+                        parameters["lmbda"], parameters["size_median_filter"], parameters["max_linear_iter"], 
+                        parameters["max_iter"], parameters["lambda2"], parameters["lambda3"], 
+                        parameters["Mask"], parameters["LO_filter"])
+    t2 = time.time()
+
+    print('Elapsed time:', (t2-t1), '(s)  --> ', (t2-t1)/60, '(min)')
+
+    # Calculate strain fields and generate visualizations
+    # ... (rest of the visualization code)
+
+if __name__ == "__main__":
+    main()
